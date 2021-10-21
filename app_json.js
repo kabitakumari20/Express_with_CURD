@@ -1,52 +1,84 @@
-let express = require("express")
-let app = express()
-app.use(express.json())
+const express=require("express");
+const app=express();
 var fs=require("fs");
-var my_array=[]
+app.use(express.json())
+const getData=()=>{
+    const data=fs.readFileSync("deatls.json")
+    return JSON.parse(data)
+};
+const saveData=(data)=>{
+    const string=JSON.stringify(data,null,3)
+    fs.writeFileSync("deatls.json",string)
+};
 
-app.get("/",(req,res)=>{
-    res.send("Hiii")
-})
-
-
-app.post("/name",(req,res)=>{
-    var main = {
-        name:req.body.name,
-        last_name:req.body.name,
-        age:req.body.age,
-        id:req.body.id
-    }
+app.post("/user/name",(req,res)=>{
+    const readData=getData();
     const userData = req.body
-    if (userData.name == null || userData.age == null || userData.last_name == null || userData.id == null) {
-        return res.status(401).send({error: true, msg: 'User data missing'})
+    if (userData.fullname == null || userData.age == null || userData.username == null || userData.password == null) {
+        return res.send({error: true, msg: 'User data missing'})
     }
-
-    res.send(main)
-    console.log("data save on json file")
-    var data=JSON.stringify(main)
-    var data1=fs.writeFileSync("data.json",data)
-    // my_araay.push(data1)
-    // console.log(my_array)
-    console.log(data1)
-
-})
-
-app.put("/update",(req,res)=>{
-    main ={
-        name:req.body.name,
-        age:req.body.age,
-        id:req.body.id
+    const findExist = readData.find( user => user.username === userData.username )
+    if (findExist) {
+        return res.send({error: true, msg: 'username already exist'})
     }
-    res.send(main)
-    console.log("updating data")
-    var read=JOSON.stringify(main)
-    var upadate=fs.readFileSync("data.josn","utf8",read)
-    console.log(upadate)
+    readData.push(userData)  
+    saveData(readData);
+    res.send({success: true, msg: 'User data added successfully'})
+});
+
+app.get('/user/list', (req, res) => {
+    const users = getData()
+    res.send(users)
 })
 
+app.put('/user/update', (req, res) => {
+    const username = req.params.username
+    const userData = req.body
+    const readData = getData()      
+    const findExist = readData.find( user => user.username === username )
+    if (findExist) {
+        return res.send({error: true, msg: 'username not exist'})
+    }
+    const updateUser = readData.filter( user => user.username !== username )
+    updateUser.push(userData)
+    saveData(updateUser)
+    res.send({success: true, msg: 'User data updated successfully'})
+});
 
-app.listen(7000,()=>{
-    console.log("i am on server")
+app.delete('/user/delete/:username', (req, res) => {
+    const username = req.params.username
+    const existUsers = getData()
+    const filterUser = existUsers.filter( user => user.username == username )
+    console.log(filterUser)
+    if ( existUsers.length === filterUser.length ) {
+        return res.send({error: true, msg: 'username does not exist'})
+    }
+    saveData(filterUser)
+    res.send({success: true, msg: 'User removed successfully'}) 
 })
 
-
+// app.delete('/user/delete/:username', (req, res) => {
+//     fs.readFile("deatls.json", 'utf8', (err, data) => {
+//       var existUsers = getData()
+//     //   console.log(existUsers)
+//       const username= req.params.username;
+//       console.log(username)
+//       const USERS =username.split(':');
+//       console.log(USERS[1]);
+//       let i=0
+    
+//     while (i<existUsers.length){
+//         console.log("users",existUsers[i]["username"])
+        
+//         if (existUsers[i]["username"]==USERS[1]){
+//             delete existUsers[i]; 
+//         }
+//         i++
+//     }
+//       saveData(existUsers);
+//       res.send(`accounts with id ${username} has been deleted`)
+//     }, true);
+//   })
+app.listen(4000,()=>{
+    console.log("i am on sarver 4000")
+})

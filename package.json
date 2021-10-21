@@ -1,8 +1,8 @@
 {
-  "name": "curd_opratinn_with_json",
+  "name": "curd_json",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app_json.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
